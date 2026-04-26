@@ -1,14 +1,12 @@
-/// <reference types="@cloudflare/next-on-pages" />
+/// <reference types="@opennextjs/cloudflare" />
 
-interface CloudflareEnv {
-  DB: D1Database
-  ZAI_API_KEY?: string
-}
-
-declare module "@cloudflare/next-on-pages" {
-  export function getRequestContext<T = CloudflareEnv>(): {
-    env: T
-    ctx: ExecutionContext
-    cf: IncomingRequestCfProperties
+// Extend the global CloudflareEnv with our D1 binding
+declare global {
+  interface CloudflareEnv {
+    DB?: D1Database
+    ASSETS?: Fetcher
+    ZAI_API_KEY?: string
   }
 }
+
+export {}

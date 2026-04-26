@@ -1,8 +1,11 @@
-#:schema node_modules/@cloudflare/next-on-pages/platform/schema.json
+#:schema node_modules/@opennextjs/cloudflare/schema.json
 name = "agentic-fox-labs-erp"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
+
+# OpenNext for Cloudflare uses Workers, not Pages
+main = ".open-next/worker.js"
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
 [[d1_databases]]
 binding = "DB"

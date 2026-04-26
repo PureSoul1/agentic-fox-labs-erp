@@ -2,7 +2,7 @@
  * Database Client - Dual Mode Support
  *
  * - Local development: Prisma + SQLite
- * - Cloudflare Pages: Prisma + D1 (via @prisma/adapter-d1)
+ * - Cloudflare Workers: Prisma + D1 (via @prisma/adapter-d1)
  *
  * Usage: Call getDB() at the start of each API route handler.
  * Do NOT import `db` at module scope for Cloudflare compatibility.
@@ -19,7 +19,7 @@ const globalForPrisma = globalThis as unknown as {
  * Get the database client for the current environment.
  *
  * In Cloudflare Workers, this creates a PrismaClient with D1 adapter
- * using the D1 binding from getRequestContext().
+ * using getCloudflareContext() from @opennextjs/cloudflare.
  *
  * In local development, this returns a singleton PrismaClient using SQLite.
  */
@@ -27,10 +27,10 @@ export function getDB(): PrismaClient {
   // Try Cloudflare D1 first
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getRequestContext } = require('@cloudflare/next-on-pages')
-    const ctx = getRequestContext()
-    if (ctx?.env?.DB) {
-      const adapter = new PrismaD1(ctx.env.DB)
+    const { getCloudflareContext } = require('@opennextjs/cloudflare')
+    const { env } = getCloudflareContext()
+    if (env?.DB) {
+      const adapter = new PrismaD1(env.DB as D1Database)
       return new PrismaClient({ adapter })
     }
   } catch {
