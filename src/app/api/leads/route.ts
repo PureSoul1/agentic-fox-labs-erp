@@ -1,10 +1,11 @@
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 const orgId = 'org_agentic_fox'
 
 export async function GET(request: Request) {
   try {
+    const db = getDB()
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const db = getDB()
     const body = await request.json()
 
     const lead = await db.lead.create({
@@ -86,6 +88,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    const db = getDB()
     const body = await request.json()
     const { id, ...data } = body
 

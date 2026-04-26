@@ -1,11 +1,12 @@
 import ZAI from 'z-ai-web-dev-sdk'
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 const orgId = 'org_agentic_fox'
 
 export async function POST(request: Request) {
   try {
+    const db = getDB()
     const body = await request.json()
     const { leadId } = body
 

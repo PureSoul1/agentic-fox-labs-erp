@@ -108,16 +108,28 @@ INSERT OR IGNORE INTO SiteVisit (id, scheduledAt, status, feedback, rating, trav
 ('visit_3', '2024-11-20T11:00:00', 'Completed', 'Very interested, wants to negotiate price', 4, 'Own Vehicle', 4, 'lead_5', 'proj_skyline', 'user_agent1', 'org_agentic_fox'),
 ('visit_4', '2024-11-15T16:00:00', 'Completed', 'Looking for bigger unit, considering 3 BHK', 3, NULL, 2, 'lead_1', 'proj_skyline', 'user_agent1', 'org_agentic_fox');
 
+-- Update completed visits with completedAt timestamps
+UPDATE SiteVisit SET completedAt = '2024-11-20T13:00:00' WHERE id = 'visit_3';
+UPDATE SiteVisit SET completedAt = '2024-11-15T17:30:00' WHERE id = 'visit_4';
+
+-- Update lead lastContactedAt for leads that have been contacted
+UPDATE Lead SET lastContactedAt = '2024-11-10T09:00:00' WHERE id = 'lead_2';
+UPDATE Lead SET lastContactedAt = '2024-11-12T14:00:00' WHERE id = 'lead_6';
+
+-- Update lead follow-up dates
+UPDATE Lead SET nextFollowUp = '2024-12-08T10:00:00' WHERE id = 'lead_1';
+UPDATE Lead SET nextFollowUp = '2024-12-10T11:00:00' WHERE id = 'lead_6';
+
 -- Activities
-INSERT OR IGNORE INTO Activity (id, type, title, detail, orgId) VALUES
-('act_1', 'lead_created', 'New Lead: Ravi Malhotra', 'Lead from Website, interested in Skyline Towers', 'org_agentic_fox'),
-('act_2', 'booking_confirmed', 'Booking Confirmed: Amit Verma', 'Unit A-101 at Skyline Towers - ₹85,00,000', 'org_agentic_fox'),
-('act_3', 'payment_received', 'Payment Received: ₹17,00,000', 'From Amit Verma for Skyline Towers Agreement', 'org_agentic_fox'),
-('act_4', 'visit_completed', 'Site Visit Completed', 'Suresh Menon visited Skyline Towers - Rating: 4/5', 'org_agentic_fox'),
-('act_5', 'booking_confirmed', 'Booking Confirmed: Sneha Kapoor', 'Villa V-01 at Green Valley Villas - ₹3,50,00,000', 'org_agentic_fox'),
-('act_6', 'lead_created', 'New Lead: Nisha Agarwal', 'Walk-in lead, interested in Skyline Towers', 'org_agentic_fox'),
-('act_7', 'payment_received', 'Payment Received: ₹52,50,000', 'From Sneha Kapoor for Green Valley Agreement', 'org_agentic_fox'),
-('act_8', 'commission_paid', 'Commission Paid: ₹2,12,500', 'To SK Realtors for Amit Verma booking', 'org_agentic_fox');
+INSERT OR IGNORE INTO Activity (id, type, title, detail, leadId, orgId) VALUES
+('act_1', 'lead_created', 'New Lead: Ravi Malhotra', 'Lead from Website, interested in Skyline Towers', 'lead_1', 'org_agentic_fox'),
+('act_2', 'booking_confirmed', 'Booking Confirmed: Amit Verma', 'Unit A-101 at Skyline Towers - ₹85,00,000', NULL, 'org_agentic_fox'),
+('act_3', 'payment_received', 'Payment Received: ₹17,00,000', 'From Amit Verma for Skyline Towers Agreement', NULL, 'org_agentic_fox'),
+('act_4', 'visit_completed', 'Site Visit Completed', 'Suresh Menon visited Skyline Towers - Rating: 4/5', 'lead_5', 'org_agentic_fox'),
+('act_5', 'booking_confirmed', 'Booking Confirmed: Sneha Kapoor', 'Villa V-01 at Green Valley Villas - ₹3,50,00,000', NULL, 'org_agentic_fox'),
+('act_6', 'lead_created', 'New Lead: Nisha Agarwal', 'Walk-in lead, interested in Skyline Towers', 'lead_4', 'org_agentic_fox'),
+('act_7', 'payment_received', 'Payment Received: ₹52,50,000', 'From Sneha Kapoor for Green Valley Agreement', NULL, 'org_agentic_fox'),
+('act_8', 'commission_paid', 'Commission Paid: ₹2,12,500', 'To SK Realtors for Amit Verma booking', NULL, 'org_agentic_fox');
 
 -- Notifications
 INSERT OR IGNORE INTO Notification (id, title, message, type, orgId) VALUES

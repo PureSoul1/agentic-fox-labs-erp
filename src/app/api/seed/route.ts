@@ -1,8 +1,9 @@
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
+    const db = getDB()
     const orgId = 'org_agentic_fox'
 
     // Check if already seeded

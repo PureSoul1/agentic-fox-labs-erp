@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 const orgId = 'org_agentic_fox'
@@ -9,6 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const db = getDB()
 
     const booking = await db.booking.findFirst({
       where: { id, orgId },
@@ -57,6 +58,7 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
+    const db = getDB()
 
     const existingBooking = await db.booking.findFirst({ where: { id, orgId } })
     if (!existingBooking) {

@@ -1,10 +1,11 @@
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 const orgId = 'org_agentic_fox'
 
 export async function GET() {
   try {
+    const db = getDB()
     // 1. Sales by Project
     const projects = await db.project.findMany({
       where: { orgId },

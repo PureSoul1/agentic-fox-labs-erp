@@ -1,10 +1,11 @@
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 const orgId = 'org_agentic_fox'
 
 export async function GET(request: Request) {
   try {
+    const db = getDB()
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const projectId = searchParams.get('projectId')
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const db = getDB()
     const body = await request.json()
 
     // Generate booking number

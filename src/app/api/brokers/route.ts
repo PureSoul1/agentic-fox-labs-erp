@@ -1,10 +1,11 @@
-import { db } from '@/lib/db'
+import { getDB } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 const orgId = 'org_agentic_fox'
 
 export async function GET() {
   try {
+    const db = getDB()
     const brokers = await db.broker.findMany({
       where: { orgId },
       include: {
@@ -48,6 +49,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const db = getDB()
     const body = await request.json()
 
     const broker = await db.broker.create({
