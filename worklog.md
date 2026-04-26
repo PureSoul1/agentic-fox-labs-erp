@@ -186,3 +186,35 @@ Stage Summary:
 - Notifications dropdown uses static data - could connect to /api/notifications
 - Mobile responsiveness could be further refined for very small screens
 - Cron job for periodic review needs auth context to be created
+
+---
+
+Task ID: 15
+Agent: Main Agent
+Task: Adapt application for Cloudflare Pages + D1 deployment
+
+Work Log:
+- Installed @prisma/adapter-d1 package for Prisma + Cloudflare D1 compatibility
+- Updated prisma/schema.prisma with driverAdapters preview feature
+- Created getDB() function in src/lib/db.ts that auto-detects Cloudflare vs local environment
+- Updated all 17 API routes to use getDB() for request-level database access
+- On Cloudflare: getDB() uses getRequestContext() to access D1 binding via PrismaD1 adapter
+- On local: getDB() returns singleton PrismaClient with SQLite
+- Updated env.d.ts with Cloudflare environment types
+- Updated next.config.ts for Cloudflare Pages compatibility
+- Enhanced seed-d1.sql with complete demo data including activity leadId refs and completedAt dates
+- Tested all APIs locally - working perfectly after migration
+- Lint passes with only 1 pre-existing warning
+- Pushed all changes to GitHub (commit a635fb3)
+
+Stage Summary:
+- App is now dual-mode: Prisma+SQLite (local) / Prisma+D1 (Cloudflare)
+- Zero breaking changes - all existing Prisma queries work unchanged
+- 17 API routes updated with getDB() pattern
+- Ready for Cloudflare Pages deployment
+- GitHub repo: https://github.com/PureSoul1/agentic-fox-labs-erp
+
+### Cloudflare Deployment Status
+- Code is ready for deployment
+- User needs to: create D1 database, update wrangler.toml with database ID, deploy via Cloudflare Dashboard or Wrangler CLI
+- Detailed deployment guide provided below
