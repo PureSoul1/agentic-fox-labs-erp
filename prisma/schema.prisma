@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Multi-Tenant Core ───
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  industry    String   @default("Real Estate")
+  plan        String   @default("free") // free, starter, pro, enterprise
+  maxProjects Int      @default(5)
+  maxUsers    Int      @default(10)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  projects    Project[]
+  brokers     Broker[]
+  leads       Lead[]
+  customers   Customer[]
+  payments    Payment[]
+  bookings    Booking[]
+  siteVisits  SiteVisit[]
+  commissions Commission[]
+  activities  Activity[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  avatar       String?
+  role         String   @default("viewer") // super_admin, org_admin, manager, agent, viewer
+  phone        String?
+  isActive     Boolean  @default(true)
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  leads     Lead[]      @relation("LeadOwner")
+  customers Customer[]  @relation("CustomerAssignedTo")
+  bookings  Booking[]   @relation("BookingCreatedBy")
+  visits    SiteVisit[] @relation("VisitAssignedTo")
+}
+
+// ─── Property Management ───
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  location    String
+  city        String
+  state       String?
+  pincode     String?
+  latitude    Float?
+  longitude   Float?
+  type        String   @default("Residential") // Residential, Commercial, Mixed-Use
+  status      String   @default("Pre-Launch") // Pre-Launch, Under Construction, Ready to Move, Completed
+  totalUnits  Int      @default(0)
+  soldUnits   Int      @default(0)
+  reraId      String?
+  amenities   String?  // JSON string of amenities
+  imageUrls   String?  // JSON string of image URLs
+  brochureUrl String?
+  orgId       String
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  units     Unit[]
+  bookings  Booking[]
+  visits    SiteVisit[]
+
+  @@unique([orgId, slug])
+}
+
+model Unit {
+  id            String   @id @default(cuid())
+  unitNumber    String
+  floor         Int      @default(0)
+  wing          String?
+  type          String   @default("Apartment") // Apartment, Villa, Plot, Office, Shop
+  bhk           Int      @default(1)
+  area          Float    @default(0) // in sq ft
+  areaUnit      String   @default("sqft")
+  price         Float    @default(0)
+  pricePerSqft  Float    @default(0)
+  facing        String?  // North, South, East, West
+  status        String   @default("Available") // Available, Blocked, Sold, Reserved
+  possession    String?
+  features      String?  // JSON string
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  booking Booking?
+
+  @@unique([projectId, unitNumber])
+}
+
+// ─── CRM ───
+
+model Lead {
+  id              String   @id @default(cuid())
+  name            String
+  email           String?
+  phone           String
+  alternatePhone  String?
+  source          String   @default("Website") // Website, Referral, Walk-in, Social Media, Broker, Advertisement, Other
+  status          String   @default("New") // New, Contacted, Qualified, Site Visit, Negotiation, Booked, Lost
+  priority        String   @default("Medium") // Hot, Warm, Cold, Medium
+  budget          Float?
+  budgetMin       Float?
+  budgetMax       Float?
+  interestedIn    String?  // Project/Unit preference
+  notes           String?
+  aiScore         Float?   // AI lead score 0-100
+  aiInsights      String?  // AI-generated insights
+  lastContactedAt DateTime?
+  nextFollowUp    DateTime?
+  orgId           String
+  organization    Organization @relation(fields: [orgId], references: [id])
+  assignedToId    String?
+  assignedTo      User?     @relation("LeadOwner", fields: [assignedToId], references: [id])
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  visits    SiteVisit[]
+  activities Activity[]
+}
+
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?
+  phone        String
+  address      String?
+  city         String?
+  state        String?
+  pincode      String?
+  panNumber    String?
+  aadhaarNumber String?
+  gstNumber    String?
+  type         String   @default("Individual") // Individual, Corporate
+  companyName  String?
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id])
+  assignedToId String?
+  assignedTo   User?      @relation("CustomerAssignedTo", fields: [assignedToId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  leads    Lead[]
+  bookings Booking[]
+  payments Payment[]
+}
+
+// ─── Site Visits ───
+
+model SiteVisit {
+  id          String   @id @default(cuid())
+  scheduledAt DateTime
+  completedAt DateTime?
+  status      String   @default("Scheduled") // Scheduled, In Progress, Completed, Cancelled, No Show
+  feedback    String?
+  rating      Int?     // 1-5
+  travelMode  String?  // Own Vehicle, Company Cab, Public Transport
+  paxCount    Int      @default(1)
+  notes       String?
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  assignedToId String
+  assignedTo  User     @relation("VisitAssignedTo", fields: [assignedToId], references: [id])
+  orgId       String
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Bookings ───
+
+model Booking {
+  id              String   @id @default(cuid())
+  bookingNumber   String   @unique
+  status          String   @default("Pending") // Pending, Confirmed, Cancelled, Refunded
+  bookingAmount   Float    @default(0)
+  agreementDate   DateTime?
+  possessionDate  DateTime?
+  discount        Float    @default(0)
+  gstAmount       Float    @default(0)
+  totalAmount     Float    @default(0)
+  notes           String?
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id])
+  unitId          String   @unique
+  unit            Unit     @relation(fields: [unitId], references: [id])
+  brokerId        String?
+  broker          Broker?  @relation(fields: [brokerId], references: [id])
+  createdById     String
+  createdBy       User     @relation("BookingCreatedBy", fields: [createdById], references: [id])
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id])
+  orgId           String
+  organization    Organization @relation(fields: [orgId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments    Payment[]
+  commissions Commission[]
+}
+
+// ─── Payments ───
+
+model Payment {
+  id             String   @id @default(cuid())
+  amount         Float
+  paymentDate    DateTime
+  paymentMode    String   @default("Bank Transfer") // Cash, Cheque, Bank Transfer, UPI, Card, Online
+  transactionRef String?
+  status         String   @default("Pending") // Pending, Cleared, Bounced, Failed
+  milestone      String?  // Booking Amount, Agreement, Slab 1, Slab 2, etc.
+  dueDate        DateTime?
+  notes          String?
+  receiptUrl     String?
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  bookingId      String
+  booking        Booking  @relation(fields: [bookingId], references: [id])
+  orgId          String
+  organization   Organization @relation(fields: [orgId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ─── Broker / Channel Partner ───
+
+model Broker {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?
+  phone        String
+  company      String?
+  type         String   @default("Individual") // Individual, Agency
+  panNumber    String?
+  gstNumber    String?
+  bankAccount  String?
+  ifscCode     String?
+  bankName     String?
+  commissionRate Float  @default(0) // percentage
+  isActive     Boolean  @default(true)
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings    Booking[]
+  commissions Commission[]
+}
+
+model Commission {
+  id          String   @id @default(cuid())
+  amount      Float
+  status      String   @default("Pending") // Pending, Approved, Paid, Hold
+  paidDate    DateTime?
+  remarks     String?
+  brokerId    String
+  broker      Broker   @relation(fields: [brokerId], references: [id])
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  orgId       String
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Activity Log ───
+
+model Activity {
+  id        String   @id @default(cuid())
+  type      String   // lead_created, booking_confirmed, payment_received, visit_completed, etc.
+  title     String
+  detail    String?
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id])
+  orgId     String
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// ─── Notifications ───
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("info") // info, success, warning, error
+  isRead    Boolean  @default(false)
+  orgId     String
+  createdAt DateTime @default(now())
+}
